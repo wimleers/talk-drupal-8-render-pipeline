@@ -1,0 +1,422 @@
+<!doctype html>
+<html lang="en">
+
+	<head>
+		<meta charset="utf-8">
+
+		<title>Drupal 8's render pipeline'</title>
+
+		<meta name="description" content="A talk explaing Drupal 8's render pipeline, using a diagram as a map and guide.">
+		<meta name="author" content="Wim Leers">
+
+		<meta name="apple-mobile-web-app-capable" content="yes" />
+		<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+		<link rel="stylesheet" href="src/reveal/css/reveal.min.css">
+		<link rel="stylesheet" href="src/reveal/css/theme/default.css" id="theme">
+
+		<!-- For syntax highlighting -->
+		<link rel="stylesheet" href="src/reveal/lib/css/zenburn.css">
+
+		<!-- If the query includes 'print-pdf', include the PDF print sheet -->
+		<script>
+			if( window.location.search.match( /print-pdf/gi ) ) {
+				var link = document.createElement( 'link' );
+				link.rel = 'stylesheet';
+				link.type = 'text/css';
+				link.href = 'src/reveal/css/print/pdf.css';
+				document.getElementsByTagName( 'head' )[0].appendChild( link );
+			}
+		</script>
+
+		<!--[if lt IE 9]>
+		<script src="src/reveal/lib/js/html5shiv.js"></script>
+		<![endif]-->
+	</head>
+
+	<body>
+
+		<div class="reveal">
+
+
+			<div class="slides">
+				<section>
+					<h1>The render pipeline</h1>
+					<h3>Drupal 8</h3>
+					<p style="margin-top: 6em"><em>… while waiting for this talk to start, please already download</em></p>
+					<p style="font-size: 130%"><a href="http://wimleers.com/drupal-8-render-pipeline.pdf">wimleers.com/drupal-8-render-pipeline.pdf</a></p>
+					<p><small><em>Thanks! &nbsp; :)</em></small></p>
+				</section>
+
+
+				<section>
+					<h1>The render pipeline</h1>
+					<h3>Drupal 8</h3>
+					<p>
+							<small><a href="https://wimleers.com">wimleers.com</a><br>
+						<a href="https://twitter.com/wimleers">@wimleers</a><br>
+						Senior Software Engineer<br>
+						Office of the CTO, <a href="http://acquia.com">Acquia</a></small>
+					</p>
+				</section>
+
+
+				<section>
+					<section>
+						<h2>Our guide</h2>
+					</section>
+					<section>
+						<figure>
+							<img src="img/hipster llama.jpg" />
+							<figcaption>Hah, you wish!</figcaption>
+						</figure>
+					</section>
+					<section>
+						<h2><em>The</em> Diagram</h2>
+					</section>
+					<section>
+						<img src="img/d8_render_pipeline.svg" />
+					</section>
+					<section>
+						<p>This is a map of Drupal 8!</p>
+						<p class="fragment">…<em>with driving instructions!</em></p>
+					</section>
+					<section>
+						<p>In this talk, we're going to look at each area on the map.</p>
+						<p class="fragment">…and at the end, you should <u>feel like you <em>understand</em> Drupal 8!</u></p>
+						<p class="fragment">
+							<br
+							<br>
+							<br>
+							<br>
+							Please download the PDF and follow along!
+							<br>
+							<br>
+							<a href="http://wimleers.com/d8-render-pipeline.pdf">wimleers.com/d8-render-pipeline.pdf</a></p>
+						</p>
+					</section>
+					<section>
+						<h6>Without the driving instructions</h6>
+						<img src="img/d8_render_pipeline_highlevel.png">
+					</section>
+					<section>
+						<h6>Orientation points</h6>
+						<img src="img/d8_render_pipeline_highlevel-orientation.png">
+					</section>
+					<section>
+						<h6>The steps</h6>
+						<img src="img/d8_render_pipeline_highlevel-steps.png">
+					</section>
+				</section>
+
+
+				<section>
+					<section>
+						<h2>Step 1: <code>index.php</code></h2>
+						<img src="img/d8_render_pipeline_highlevel-step1.png">
+					</section>
+					<section>
+						<h3>What is it?</h3>
+						<ul>
+							<li class="fragment">Just like all previous Drupal versions!</li>
+							<li class="fragment">What Symfony calls a <a href="http://symfony.com/doc/2.5/cookbook/configuration/front_controllers_and_kernel.html#the-front-controller"><em>front controller</em></a>
+								<blockquote class="fragment">The front controller is a well-known design pattern; it is a section of code that <em>all</em> requests served by an application run through.</blockquote>
+							</li>
+							<li class="fragment">Symfony convention: <code>app.php</code></li>
+						</ul>
+					</section>
+					<section>
+						<h3>Responsibilities?</h3>
+						<ol>
+							<li class="fragment">Create Symfony <code>Request $request</code></li>
+							<li class="fragment">Create <code>HttpKernel</code> (initialize container, <code>settings.php</code>)</li>
+							<li class="fragment"><code class="fragment highlight-green">$response = HttpKernel::handle($request)</code></li>
+							<li class="fragment"><code>$response->prepare()</code></li>
+							<li class="fragment"><code>$response->send()</code></li>
+							<li class="fragment"><code>HttpKernel::terminate()</code></li>
+						</ol>
+						<br />
+						<br />
+						<p class="fragment">Should be familiar to any Symfony developer!</p>
+					</section>
+					<!--
+					<section>
+						<h3>Possibilities?</h3>
+						<blockquote>Because every request is routed through it, the front controller can be used to […] <u>decorate the kernel with additional features.</u></blockquote>
+						<p class="fragment">⇒ "standardized" in <q>stack middlewares</q></p>
+						<p class="fragment">⇒ <code>http_middleware</code>-tagged services in Drupal</p>
+						<div class="fragment">
+							<p><a href="http://stackphp.com/">stackphp.com</a></p>
+							<p><small>Examples include: geo IP, IP restrict, negotiation…</small></p>
+						</div>
+					</section>
+					-->
+				</section>
+
+
+				<section>
+					<section>
+						<h2>Step 2: <code>HttpKernel::handle()</code></h2>
+						<img src="img/d8_render_pipeline_highlevel-step2.png">
+					</section>
+					<section>
+						<h3>What is it?</h3>
+						<ul>
+							<li>Like an arbitrator: decides what happens</li>
+							<li><code>HttpKernel</code> is the &nbsp; ♥ &nbsp; of Symfony &amp; Drupal!</li>
+						</ul>
+						<p style="margin-top: 2em"><small>See <a href="http://symfony.com/doc/2.5/components/http_kernel/introduction.html">symfony.com/doc/2.5/components/http_kernel/introduction.html</a></small></p>
+					</section>
+					<section>
+						<h3>Responsibilities?</h3>
+						<ol>
+							<li class="fragment">Event: <code>REQUEST</code> <small>(negotiation + routing)</small></li>
+							<li class="fragment">Load Controller <small>(<code>_controller</code>)</small></li>
+							<li class="fragment">Event: <code>CONTROLLER</code> <small>(last second overriding)</small></li>
+							<li class="fragment">Get Controller arguments <small>(introspection, parameter converters)</small></li>
+							<li class="fragment">Call the Controller</li>
+							<li class="fragment">If the result is a <code>Response</code>: all done! Otherwise…</li>
+							<li class="fragment">Event: <code>VIEW</code> <small>(event subscriber must turn it into a <code>Response</code>)</small></li>
+							<li class="fragment">Event: <code>RESPONSE</code> <small>(last second modifying)</small></li>
+						</ol>
+					</section>
+					<section data-background="img/httpkernel_handle_symfony_diagram.png" data-background-size="80%"></section>
+					<section>
+						<h3>Possibilities?</h3>
+						<ol>
+							<li><code>kernel.request</code></li>
+							<li><code>kernel.controller</code></li>
+							<li><code>kernel.view</code></li>
+							<li><code>kernel.response</code></li>
+						</ol>
+						<p style="text-align:center">⬇</p>
+						<p>Anything is possible!</p>
+					</section>
+				</section>
+
+
+				<section>
+					<section>
+						<h2>Step 3: Symfony events</h2>
+						<img src="img/d8_render_pipeline_highlevel-step3.png">
+					</section>
+					<section>
+						<h3>What are they?</h3>
+						<ul>
+							<li class="fragment">Many triggered by <code>HttpKernel::handle()</code></li>
+							<li class="fragment"><em>The glue between Symfony and Drupal</em></li>
+							<li class="fragment">Drupal can of course also trigger events, and does!
+						</ul>
+					</section>
+				</section>
+
+
+				<section>
+					<section>
+						<h2>Step 4: Controller</h2>
+						<img src="img/d8_render_pipeline_highlevel-step4.png">
+					</section>
+					<section>
+						<h3>What is it?</h3>
+						<p>The application logic!</p>
+						<p><small>In Drupal 7: a page callback.</small></p>
+						<p><small>Determines the content of the response.</small></p>
+					</section>
+					<section>
+						<h3>Responsibilities?</h3>
+						<p>Return either:
+						<ol>
+							<li>A <code>Response</code> object</li>
+							<li class="fragment highlight-green">A render array</li>
+							<li>An object<br><small>(with associated <code>VIEW</code> event subscriber)</small></li>
+						</ol>
+					</section>
+					<section>
+						<h3>Possibilities?</h3>
+						<ol>
+							<li class="fragment"><code>Response</code>: fully control what's sent</li>
+							<li class="fragment">Render array: let Drupal take care of sending</li>
+							<li class="fragment">Object: semantic data… >1 view subscribers can operate
+							<br>
+							<br>
+							<p><small>E.g.: a <code>TabularData</code> object: rendered as a CSV file response, or a HTML table, or a PDF file, or … </small></p></li>
+						</ol>
+					</section>
+				</section>
+
+
+				<section>
+					<section>
+						<h2>Step 5: <code>MainContent ViewSubscriber</code></h2>
+						<img src="img/d8_render_pipeline_highlevel-step5.png">
+					</section>
+					<section>
+						<h3>What is it?</h3>
+						<p>The render array-to-response <em>arbitrator</em> logic!</p>
+					</section>
+					<section>
+						<h3>Responsibilities?</h3>
+						<ul>
+							<li class="fragment">View subscriber that handles (only!) render arrays</li>
+							<li class="fragment">Selects &amp; calls a <span class="fragment highlight-green">main content renderer</span> (~ negotiated format)</li>
+						</ul>
+					</section>
+					<section>
+						<h3>Possibilities?</h3>
+						<p>Another view subscriber could turn a "semantic data object" into a render array…
+							<br><br>
+							…and then have this view subscriber render it!</p>
+							<br>
+							<br>
+							<p><small>E.g.: a <code>TabularData</code> object: some view subscriber turns it into a<br> <code>'#type' => 'table'</code> render array.</small></p>
+					</section>
+				</section>
+
+
+				<section>
+					<section>
+						<h2>Step 6: main content renderers</h2>
+						<img src="img/d8_render_pipeline_highlevel-step6.png">
+					</section>
+					<section>
+						<h3>What are they?</h3>
+						<p>The <em>actual</em> render array-to-response logic!</p>
+						<br>
+						<p><small>One <em>"main content renderer"</em>-tagged service per format.</small></p>
+					</section>
+					<section>
+						<h3>Responsibilities?</h3>
+						<ul>
+							<li class="fragment">Transform a render array into a <code>Response</code>.</li>
+							<li class="fragment">Drupal 8 already supports:
+								<ul>
+									<li><code>html</code> <small><code>text/html</code></small></li>
+									<li><code>ajax</code> <small><code>application/vnd.drupal-ajax</code></small></li>
+									<li><code>dialog</code> <small><code>application/vnd.drupal-dialog</code></small></li>
+									<li><code>modal</code> <small><code>application/vnd.drupal-modal</code></small></li>
+								</ul>
+							</li>
+						</ul>
+					</section>
+					<section>
+						<h3>Possibilities?</h3>
+						<p>Add <q>main content renderer</q> services to support more formats!</p>
+					</section>
+				</section>
+
+
+				<section>
+					<section>
+						<h2>Big picture</h2>
+					</section>
+					<section>
+						<h2><em>The</em> Diagram</h2>
+					</section>
+					<section>
+						<img src="img/d8_render_pipeline.svg" />
+					</section>
+					<section>
+						<h6>Orientation</h6>
+						<img src="img/d8_render_pipeline_highlevel-orientation.png">
+					</section>
+					<section>
+						<h6>The steps</h6>
+						<img src="img/d8_render_pipeline_highlevel-bigpicture.png">
+					</section>
+				</section>
+
+
+				<section>
+					<section>
+						<h2>Step 7: the HTML main content renderer</h2>
+						<p>Let's take a closer look at the most interesting part <em>inside</em> step 6!</p>
+					</section>
+					<section>
+						<h3>What is it?</h3>
+						<ul>
+							<li>The <em>most commonly used</em> render array-to-response logic!
+								<br><small>(Because the web is all about HTML!)</small></li>
+							<li class="fragment">Supports <u><em>page display variants</em></u>
+								<ul>
+									<li class="fragment">Alternative methods of rendering main content</li>
+									<li class="fragment">⇒ alternative ways of filling <code>page.html.twig</code></li>
+									<li class="fragment">e.g.: Block, Panels, Page Manager…</li>
+								</ul>
+							</li>
+							<li style="margin-top: .5em" class="fragment">Default: <code>BlockPageVariant</code> <small>(main content with blocks around it)</small></li>
+						</ul>
+					</section>
+					<section>
+						<h3>Responsibilities?</h3>
+						<p>Fill <code>page.html.twig</code> + render into Response</p>
+						<br>
+						<ol>
+							<li class="fragment">If <code>'#type' => 'page'</code> <small>(<code>page.html.twig</code>)</small> go to 4</li>
+							<li class="fragment">Trigger the <code>SELECT_PAGE_DISPLAY_VARIANT</code> event</li>
+							<li class="fragment">Build selected page display variant <small>(returns <code>'#type' => 'page'</code>)</small></li>
+							<li class="fragment">Wrap in <code>'#type' => 'html'</code> <small>(<code>html.html.twig</code>)</small></li>
+							<li class="fragment"><code>drupal_render()</code> everything!</li>
+						</ol>
+					</section>
+					<section>
+						<h3>Possibilities?</h3>
+						<ul>
+							<li>Panels, Page Manager et cetera … without hacks!</li>
+							<li>Something none of us have even thought of yet?</li>
+							<li class="fragment">A <code>BigPipeBlockPageVariant</code>… ? :)
+								<br>
+								<br>
+								<small>See <a href="https://www.facebook.com/note.php?note_id=389414033919">&ldquo;BigPipe: Pipelining web pages for high performance&rdquo;</a></small></li>
+							</li>
+						</ul>
+					</section>
+				</section>
+
+
+				<section>
+					<h3>Hope you liked it!</h3>
+					<h2>Questions?</h2>
+					<p><a href="http://wimleers.com/talk/drupal-8-render-pipeline">wimleers.com/talk/drupal-8-render-pipeline</a></p>
+				</section>
+
+			</div>
+
+		</div>
+
+		<script src="src/reveal/lib/js/head.min.js"></script>
+		<script src="src/reveal/js/reveal.min.js"></script>
+
+		<script>
+
+			// Full list of configuration options available here:
+			// https://github.com/hakimel/reveal.js#configuration
+			Reveal.initialize({
+				controls: true,
+				progress: true,
+				history: true,
+				center: true,
+
+				theme: Reveal.getQueryHash().theme, // available themes are in /css/theme
+				transition: Reveal.getQueryHash().transition || 'default', // default/cube/page/concave/zoom/linear/fade/none
+
+				// Parallax scrolling
+				// parallaxBackgroundImage: 'https://s3.amazonaws.com/hakim-static/reveal-js/reveal-parallax-1.jpg',
+				// parallaxBackgroundSize: '2100px 900px',
+
+				// Optional libraries used to extend on reveal.js
+				dependencies: [
+					{ src: 'src/reveal/lib/js/classList.js', condition: function() { return !document.body.classList; } },
+					{ src: 'src/reveal/plugin/markdown/marked.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+					{ src: 'src/reveal/plugin/markdown/markdown.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+					{ src: 'src/reveal/plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } },
+					{ src: 'src/reveal/plugin/zoom-js/zoom.js', async: true, condition: function() { return !!document.body.classList; } },
+					{ src: 'src/reveal/plugin/notes/notes.js', async: true, condition: function() { return !!document.body.classList; } }
+				]
+			});
+
+		</script>
+
+	</body>
+</html>
