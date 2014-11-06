@@ -376,6 +376,81 @@
 
 
 				<section>
+					<section>
+						<h2>More about render arrays</h2>
+						<p>Significantly improved rendering of render arrays in Drupal 8.</p>
+						<p>Too much for this talk, but will cover each in one slide:
+							<ul>
+								<li>Assets</li>
+								<li>Cache tags — see the talks above and below</li>
+								<li>Bubbling</li>
+								<li>Render caching — see <a href="http://wimleers.com/talk/render-caching-drupal-7-and-8">&ldquo;Render caching in Drupal 7 and 8&rdquo;</a></li>
+							</ul>
+						</p>
+					</section>
+					<section>
+						<h2>Assets</h2>
+						<p>Drupal 7:</p>
+						<img src="img/js-all-the-things.jpg">
+						<p>Not in Drupal 8: <em>asset dependencies</em>!</p>
+						<p>See talk <a href="http://wimleers.com/talk/really-fast-drupal-8">&ldquo;Building really fast websites with Drupal 8&rdquo;</a></p>
+					</section>
+					<section>
+						<h2>Cache tags</h2>
+						<blockquote>“How to clear all entries containing node 42?”</blockquote>
+						<p>⬇</p>
+						<p><em>Impossible!</em></p>
+						<p>⬇</p>
+						<p>Cache tags!
+						<br><pre><code lang="php">// Associate the 'node:42' cache tag with the render array.
+$node = Node::load(42);
+$build['#cache']['tags'] = $node->getCacheTags();
+
+// Automatically invalidates the 'node:42' cache tag!
+$node->save();
+</code></pre>
+						</p>
+						<p>See talks <a href="http://wimleers.com/talk/really-fast-drupal-8">&ldquo;Building really fast websites with Drupal 8&rdquo;</a> &amp; <br><a href="http://wimleers.com/talk/render-caching-drupal-7-and-8">&ldquo;Render caching in Drupal 7 and 8&rdquo;</a></p>
+					</section>
+					<section>
+						<h2>Bubbling</h2>
+						<blockquote>Just like JavaScript events!</blockquote>
+					<pre><code class="xml">&lt;html>
+  <region>
+    <block data-cache-tags="block:search_form"></block>
+  </region>
+  <region>
+    <block data-cache-tags="block:news">
+      <view data-cache-tags="view:news"></view>
+    </block>
+    <block data-cache-tags="block:main_content">
+      <node data-cache-tags="node:17">
+         <field data-cache-tags="user:2"></field>
+         <field data-cache-tags="filter_format:basic_html file:5 file:3"></field>
+      </node>
+    </block>
+  </region>
+&lt;/html></code></pre>
+						<p class="fragment"><code>X-Drupal-Cache-Tags</code> header: efficient Varnish purging!</p>
+						<p>See talk <a href="http://wimleers.com/talk/render-caching-drupal-7-and-8">&ldquo;Render caching in Drupal 7 and 8&rdquo;</a></p>
+					</section>
+					<section>
+						<h2>Render caching</h2>
+						<p>Needs asset dependencies + cache tags + bubbling!</p>
+						<br>
+						<p>See talks <a href="http://wimleers.com/talk/really-fast-drupal-8">&ldquo;Building really fast websites with Drupal 8&rdquo;</a> &amp; <br><a href="http://wimleers.com/talk/render-caching-drupal-7-and-8">&ldquo;Render caching in Drupal 7 and 8&rdquo;</a></p>
+						<br>
+						<br>
+						<br>
+						<p class="fragment">Let's visualize cache tag bubbling and render caching…</p>
+					</section>
+					<section>
+						<iframe src="d8demo/index.html" width="950" height="600" style="margin:0;overflow:hidden;border:1px solid #CCC;border-width:1px 1px 0;margin-bottom:5px"></iframe>
+						<p><a href="d8demo/index.html" target="_blank">View demo</a> <small>(yellow outlines: cache tags, green inset shadows: render cached)</small></p>
+					</section>
+				</section>
+
+				<section>
 					<h3>Hope you liked it!</h3>
 					<h2>Questions?</h2>
 					<p><a href="http://wimleers.com/talk/drupal-8-render-pipeline">wimleers.com/talk/drupal-8-render-pipeline</a></p>
