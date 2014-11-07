@@ -94,7 +94,7 @@
 							Please download the PDF and follow along!
 							<br>
 							<br>
-							<a href="http://wimleers.com/d8-render-pipeline.pdf">wimleers.com/d8-render-pipeline.pdf</a></p>
+							<a href="http://wimleers.com/drupal-8-render-pipeline.pdf">wimleers.com/drupal-8-render-pipeline.pdf</a></p>
 						</p>
 					</section>
 					<section>
@@ -176,7 +176,7 @@
 							<li class="fragment">Load Controller <small>(<code>_controller</code>)</small></li>
 							<li class="fragment">Event: <code>CONTROLLER</code> <small>(last second overriding)</small></li>
 							<li class="fragment">Get Controller arguments <small>(introspection, parameter converters)</small></li>
-							<li class="fragment">Call the Controller</li>
+							<li class="fragment"><span class="fragment highlight-green">Call the Controller</a></li>
 							<li class="fragment">If the result is a <code>Response</code>: all done! Otherwise…</li>
 							<li class="fragment">Event: <code>VIEW</code> <small>(event subscriber must turn it into a <code>Response</code>)</small></li>
 							<li class="fragment">Event: <code>RESPONSE</code> <small>(last second modifying)</small></li>
@@ -236,8 +236,8 @@
 					<section>
 						<h3>Possibilities?</h3>
 						<ol>
-							<li class="fragment"><code>Response</code>: fully control what's sent</li>
-							<li class="fragment">Render array: let Drupal take care of sending</li>
+							<li class="fragment"><code>Response</code>: fully control what's sent <small>(bye bye, &nbsp; <code>exit;</code> &nbsp;)</small></li>
+							<li class="fragment"><span class="fragment highlight-green">Render array: let Drupal take care of sending</span></li>
 							<li class="fragment">Object: semantic data… >1 view subscribers can operate
 							<br>
 							<br>
@@ -254,14 +254,12 @@
 					</section>
 					<section>
 						<h3>What is it?</h3>
+						<p>View subscriber that handles (only!) render arrays</p>
 						<p>The render array-to-response <em>arbitrator</em> logic!</p>
 					</section>
 					<section>
 						<h3>Responsibilities?</h3>
-						<ul>
-							<li class="fragment">View subscriber that handles (only!) render arrays</li>
-							<li class="fragment">Selects &amp; calls a <span class="fragment highlight-green">main content renderer</span> (~ negotiated format)</li>
-						</ul>
+						<p>Selects &amp; calls a <span class="fragment highlight-green">main content renderer</span> (~ negotiated format)</p>
 					</section>
 					<section>
 						<h3>Possibilities?</h3>
@@ -289,7 +287,7 @@
 					<section>
 						<h3>Responsibilities?</h3>
 						<ul>
-							<li class="fragment">Transform a render array into a <code>Response</code>.</li>
+							<li class="fragment">Transform a render array into a <code>Response</code></li>
 							<li class="fragment">Drupal 8 already supports:
 								<ul>
 									<li><code>html</code> <small><code>text/html</code></small></li>
@@ -378,13 +376,14 @@
 				<section>
 					<section>
 						<h2>More about render arrays</h2>
-						<p>Significantly improved rendering of render arrays in Drupal 8.</p>
+						<p>Significantly improved rendering of render arrays in Drupal 8!</p>
+						<br>
 						<p>Too much for this talk, but will cover each in one slide:
 							<ul>
 								<li>Assets</li>
-								<li>Cache tags — see the talks above and below</li>
+								<li>Cache tags</li>
 								<li>Bubbling</li>
-								<li>Render caching — see <a href="http://wimleers.com/talk/render-caching-drupal-7-and-8">&ldquo;Render caching in Drupal 7 and 8&rdquo;</a></li>
+								<li>Render caching</li>
 							</ul>
 						</p>
 					</section>
@@ -397,7 +396,7 @@
 					</section>
 					<section>
 						<h2>Cache tags</h2>
-						<blockquote>“How to clear all entries containing node 42?”</blockquote>
+						<blockquote>“How to clear all cache items containing node 42?”</blockquote>
 						<p>⬇</p>
 						<p><em>Impossible!</em></p>
 						<p>⬇</p>
